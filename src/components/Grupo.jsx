@@ -16,6 +16,7 @@ export default function Grupo({
   mostraDip,
 }) {
   const [confirma, setConfirma] = useState(false);
+  const [confirmaCard, setConfirmaCard] = useState(false);
   const [confirmaAp, setConfirmaAp] = useState(null);
   const lista = enderecos(g);
   const feitos = new Set(g.feitos);
@@ -38,41 +39,57 @@ export default function Grupo({
           : "border-neutral-800"
       }`}
     >
-      <button
-        onClick={onAbrir}
-        className="flex w-full items-center gap-3 px-4 py-3.5 text-left active:bg-neutral-900/60"
-      >
-        <div className="min-w-0 flex-1">
-          <div className="truncate text-[15px] font-semibold text-neutral-100">
-            {g.nome}
+      <div className="flex items-stretch">
+        <button
+          onClick={onAbrir}
+          className="flex min-w-0 flex-1 items-center gap-3 py-3.5 pl-4 text-left active:bg-neutral-900/60"
+        >
+          <div className="min-w-0 flex-1">
+            <div className="truncate text-[15px] font-semibold text-neutral-100">
+              {g.nome}
+            </div>
+            <div className="mt-1 flex flex-wrap items-center gap-x-2 text-xs text-neutral-500">
+              <span>
+                {g.qtd}× de {g.canais} canais
+              </span>
+              <span className="text-neutral-700">·</span>
+              <span className="font-medium text-neutral-400">
+                {pad(g.inicio)}–{pad(fim(g))}
+              </span>
+            </div>
           </div>
-          <div className="mt-1 flex flex-wrap items-center gap-x-2 text-xs text-neutral-500">
-            <span>
-              {g.qtd}× de {g.canais} canais
-            </span>
-            <span className="text-neutral-700">·</span>
-            <span className="font-medium text-neutral-400">
-              {pad(g.inicio)}–{pad(fim(g))}
-            </span>
+          <div
+            className={`rounded-lg px-2.5 py-1 text-xs font-semibold ${
+              completo
+                ? "bg-emerald-900 text-emerald-300"
+                : "bg-neutral-800 text-neutral-300"
+            }`}
+          >
+            {g.feitos.length}/{g.qtd}
           </div>
-        </div>
-        <div
-          className={`rounded-lg px-2.5 py-1 text-xs font-semibold ${
-            completo
-              ? "bg-emerald-900 text-emerald-300"
-              : "bg-neutral-800 text-neutral-300"
+          <span
+            className={`text-neutral-600 transition-transform ${
+              aberto ? "rotate-90" : ""
+            }`}
+          >
+            ▸
+          </span>
+        </button>
+        {/* apagar o grupo inteiro direto do card, sem precisar abrir */}
+        <button
+          onClick={() =>
+            confirmaCard ? onRemove() : setConfirmaCard(true)
+          }
+          onBlur={() => setConfirmaCard(false)}
+          className={`shrink-0 px-3.5 text-xs ${
+            confirmaCard
+              ? "bg-red-950 font-semibold text-red-300"
+              : "text-neutral-700 active:text-red-400"
           }`}
         >
-          {g.feitos.length}/{g.qtd}
-        </div>
-        <span
-          className={`text-neutral-600 transition-transform ${
-            aberto ? "rotate-90" : ""
-          }`}
-        >
-          ▸
-        </span>
-      </button>
+          {confirmaCard ? "apagar?" : "✕"}
+        </button>
+      </div>
 
       {/* progresso do endereçamento */}
       <div className="h-1 w-full bg-neutral-900">
