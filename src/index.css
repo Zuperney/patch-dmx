@@ -83,7 +83,6 @@ button {
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
 }
-[data-efeitos="off"] .brilho-progresso,
 [data-efeitos="off"] .fundo-cena {
   display: none;
 }
@@ -247,23 +246,10 @@ button {
   }
 }
 
-/* card do grupo aberto: interior escuro + arco da cor do tema */
-.borda-viva {
-  border-color: transparent;
-  background:
-    linear-gradient(rgb(20 20 22 / 0.92), rgb(13 13 15 / 0.92)) padding-box,
-    conic-gradient(
-        from var(--ang),
-        var(--destaque),
-        rgb(255 255 255 / 0.1) 70deg,
-        transparent 130deg,
-        var(--destaque-claro) 200deg,
-        transparent 290deg,
-        var(--destaque)
-      )
-      border-box;
-  animation: gira-borda 4s linear infinite;
-  animation-play-state: var(--anim, running);
+/* card do grupo aberto: borda na cor do tema com brilho suave, estática */
+.borda-sutil {
+  border-color: color-mix(in srgb, var(--destaque) 45%, transparent);
+  box-shadow: 0 0 16px var(--destaque-fraco);
 }
 
 /* botão wake ativo: miolo na cor do tema + arco branco girando */
@@ -284,10 +270,8 @@ button {
   animation-play-state: var(--anim, running);
 }
 
-/* halo respirando atrás do FAB (transform/opacity, custo ~zero) */
-.fab-halo {
-  position: relative;
-}
+/* halo respirando atrás do FAB (transform/opacity, custo ~zero).
+   Não define position: o próprio botão é fixed e ancora o ::before */
 .fab-halo::before {
   content: "";
   position: absolute;
@@ -332,28 +316,6 @@ button {
   }
   100% {
     transform: scale(1);
-  }
-}
-
-/* shimmer da barra de progresso (frame 0 = brilho fora da tela) */
-.brilho-progresso {
-  background-image: linear-gradient(
-    105deg,
-    transparent 42%,
-    rgb(255 255 255 / 0.5) 50%,
-    transparent 58%
-  );
-  background-size: 250% 100%;
-  background-repeat: no-repeat;
-  animation: varre 2.4s ease-in-out infinite;
-  animation-play-state: var(--anim, running);
-}
-@keyframes varre {
-  from {
-    background-position: 180% 0;
-  }
-  to {
-    background-position: -80% 0;
   }
 }
 

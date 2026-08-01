@@ -35,7 +35,7 @@ export default function Grupo({
         conflito || estoura
           ? "border-red-800 bg-neutral-900/30"
           : aberto
-          ? "borda-viva"
+          ? "borda-sutil bg-neutral-900/30"
           : "border-neutral-800 bg-neutral-900/30"
       }`}
     >
@@ -99,9 +99,6 @@ export default function Grupo({
           }`}
           style={{ width: `${pct}%` }}
         />
-        {aberto && !completo && (
-          <div className="brilho-progresso absolute inset-0" />
-        )}
       </div>
 
       {estoura && (

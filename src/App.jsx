@@ -371,9 +371,11 @@ export default function App() {
       {aberto === null && !form && !config && (
         <button
           onClick={() => setForm(true)}
-          className="fab-halo botao-neon pop-ok fixed bottom-[max(1.25rem,env(safe-area-inset-bottom))] right-4 z-20 flex items-center gap-1.5 rounded-full bg-(--destaque) py-4 pl-5 pr-6 text-sm font-bold uppercase tracking-wide text-neutral-950 transition-transform active:scale-95 active:bg-(--destaque-ativo)"
+          aria-label="Adicionar equipamento"
+          title="Adicionar equipamento"
+          className="fab-halo botao-neon pop-ok fixed bottom-[max(1.25rem,env(safe-area-inset-bottom))] right-4 z-20 flex h-14 w-14 items-center justify-center rounded-full bg-(--destaque) text-2xl font-bold leading-none text-neutral-950 transition-transform active:scale-95 active:bg-(--destaque-ativo)"
         >
-          <span className="text-lg leading-none">+</span> Equipamento
+          +
         </button>
       )}
 
