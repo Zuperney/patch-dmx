@@ -340,8 +340,9 @@ button {
    F. Micro-animações
    ================================================================ */
 
+/* não define display: os usos (FAB flex e ✓ item de flex) já suportam
+   transform, e um display aqui venceria os utilitários do Tailwind */
 .pop-ok {
-  display: inline-block;
   animation: pop var(--dur, 300ms) cubic-bezier(0.2, 1.6, 0.4, 1);
 }
 @keyframes pop {
