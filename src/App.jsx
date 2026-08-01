@@ -8,6 +8,7 @@ import {
   colide,
 } from "./lib/dmx.js";
 import { PADRAO } from "./lib/biblioteca.js";
+import { TEMAS } from "./lib/temas.js";
 import { carregar, salvar } from "./db.js";
 import { useWakeLock } from "./hooks/useWakeLock.js";
 import Regua from "./components/Regua.jsx";
@@ -21,6 +22,8 @@ export default function App() {
   const [aberto, setAberto] = useState(null);
   const [somaMaisUm, setSomaMaisUm] = useState(false);
   const [meus, setMeus] = useState([]); // biblioteca do usuário
+  const [ocultos, setOcultos] = useState([]); // itens de fábrica removidos
+  const [destaque, setDestaque] = useState("ambar");
   const [form, setForm] = useState(false);
   const [config, setConfig] = useState(false);
   const [confirmaEstouro, setConfirmaEstouro] = useState(false);
@@ -33,6 +36,8 @@ export default function App() {
       if (d?.universos?.length) setUniversos(d.universos);
       if (d?.somaMaisUm) setSomaMaisUm(true);
       if (d?.meus?.length) setMeus(d.meus);
+      if (d?.ocultos?.length) setOcultos(d.ocultos);
+      if (d?.destaque && TEMAS[d.destaque]) setDestaque(d.destaque);
       setPronto(true);
     });
   }, []);
@@ -43,13 +48,17 @@ export default function App() {
       primeiraVez.current = false;
       return;
     }
-    salvar({ universos, somaMaisUm, meus });
-  }, [universos, somaMaisUm, meus, pronto]);
+    salvar({ universos, somaMaisUm, meus, ocultos, destaque });
+  }, [universos, somaMaisUm, meus, ocultos, destaque, pronto]);
 
   const uni = universos[atual] ?? { grupos: [] };
   const grupos = uni.grupos;
   const usados = grupos.reduce((s, g) => s + g.qtd * g.canais, 0);
-  const biblioteca = [...PADRAO, ...meus];
+  const biblioteca = [
+    ...PADRAO.filter((p) => !ocultos.includes(p.nome)),
+    ...meus,
+  ];
+  const tema = TEMAS[destaque] ?? TEMAS.ambar;
 
   /* aparelhos que passam do 512 neste universo */
   const estourando = grupos.reduce(
@@ -85,6 +94,13 @@ export default function App() {
       })
     );
     setConfirmaEstouro(false);
+  };
+
+  /* remove da biblioteca: item do usuário some, item de fábrica é ocultado */
+  const removeDaBiblioteca = (nome) => {
+    if (meus.some((x) => x.nome === nome))
+      setMeus((m) => m.filter((x) => x.nome !== nome));
+    else setOcultos((o) => (o.includes(nome) ? o : [...o, nome]));
   };
 
   const alterna = (id, i) =>
@@ -140,8 +156,16 @@ export default function App() {
 
   /* ------------------------------------------------------------ */
   return (
-    <div className="min-h-screen bg-neutral-950 text-neutral-200 tabular-nums">
-      <div className="mx-auto max-w-2xl pb-32">
+    <div
+      className="min-h-screen bg-neutral-950 text-neutral-200 tabular-nums"
+      style={{
+        "--destaque": tema.cor,
+        "--destaque-claro": tema.claro,
+        "--destaque-ativo": tema.ativo,
+        "--destaque-fraco": `color-mix(in srgb, ${tema.cor} 12%, transparent)`,
+      }}
+    >
+      <div className="mx-auto max-w-2xl pb-28">
         {/* cabeçalho */}
         <header className="sticky top-0 z-20 border-b border-neutral-800 bg-neutral-950 px-4 pb-3 pt-[max(1rem,env(safe-area-inset-top))]">
           <div className="flex items-center justify-between">
@@ -152,9 +176,9 @@ export default function App() {
               {wake.suportado && (
                 <button
                   onClick={wake.alternar}
-                  className={`rounded border px-3 py-1.5 text-xs ${
+                  className={`rounded-lg border px-3 py-1.5 text-xs ${
                     wake.ativo
-                      ? "border-amber-500 bg-amber-500/10 text-amber-400"
+                      ? "border-(--destaque) bg-(--destaque-fraco) text-(--destaque-claro)"
                       : "border-neutral-700 text-neutral-400"
                   }`}
                 >
@@ -163,7 +187,7 @@ export default function App() {
               )}
               <button
                 onClick={() => setConfig(true)}
-                className="rounded border border-neutral-700 px-3 py-1.5 text-xs text-neutral-400"
+                className="rounded-lg border border-neutral-700 px-3 py-1.5 text-xs text-neutral-400"
               >
                 ⚙ Config
               </button>
@@ -179,9 +203,9 @@ export default function App() {
                   setAtual(i);
                   setAberto(null);
                 }}
-                className={`shrink-0 rounded px-4 py-1.5 text-sm font-medium ${
+                className={`shrink-0 rounded-lg px-4 py-1.5 text-sm font-medium ${
                   i === atual
-                    ? "bg-amber-500 text-neutral-950"
+                    ? "bg-(--destaque) text-neutral-950"
                     : "border border-neutral-700 text-neutral-400"
                 }`}
               >
@@ -190,7 +214,7 @@ export default function App() {
             ))}
             <button
               onClick={novoUniverso}
-              className="shrink-0 rounded border border-dashed border-neutral-700 px-4 py-1.5 text-sm text-neutral-500"
+              className="shrink-0 rounded-lg border border-dashed border-neutral-700 px-4 py-1.5 text-sm text-neutral-500"
             >
               +
             </button>
@@ -212,17 +236,18 @@ export default function App() {
         {/* lista */}
         <main className="px-4">
           {estourando > 0 && (
-            <div className="mt-3 rounded border border-red-800 bg-red-950/60 p-3">
+            <div className="mt-3 rounded-xl border border-red-800 bg-red-950/60 p-3">
               <p className="text-xs text-red-300">
-                {estourando} {estourando === 1 ? "aparelho passa" : "aparelhos passam"}{" "}
-                do 512 neste universo.
+                {estourando}{" "}
+                {estourando === 1 ? "aparelho passa" : "aparelhos passam"} do
+                512 neste universo.
               </p>
               <button
                 onClick={() =>
                   confirmaEstouro ? apagaEstouros() : setConfirmaEstouro(true)
                 }
                 onBlur={() => setConfirmaEstouro(false)}
-                className={`mt-2 w-full rounded border py-2.5 text-sm font-medium ${
+                className={`mt-2 w-full rounded-lg border py-2.5 text-sm font-medium ${
                   confirmaEstouro
                     ? "border-red-500 bg-red-900 text-red-200"
                     : "border-red-800 text-red-300"
@@ -258,31 +283,27 @@ export default function App() {
         </main>
       </div>
 
-      {/* adicionar */}
-      <div className="fixed inset-x-0 bottom-0 border-t border-neutral-800 bg-neutral-950 p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
-        <div className="mx-auto max-w-2xl">
-          <button
-            onClick={() => setForm(true)}
-            className="w-full rounded bg-amber-500 py-3.5 text-sm font-semibold uppercase tracking-wider text-neutral-950 active:bg-amber-600"
-          >
-            Adicionar equipamento
-          </button>
-        </div>
-      </div>
+      {/* FAB de adicionar — some quando um grupo está aberto para não
+          brigar com a barra de endereçamento */}
+      {aberto === null && !form && !config && (
+        <button
+          onClick={() => setForm(true)}
+          className="fixed bottom-[max(1.25rem,env(safe-area-inset-bottom))] right-4 z-20 flex items-center gap-1.5 rounded-full bg-(--destaque) py-4 pl-5 pr-6 text-sm font-bold uppercase tracking-wide text-neutral-950 shadow-lg shadow-black/50 active:bg-(--destaque-ativo)"
+        >
+          <span className="text-lg leading-none">+</span> Equipamento
+        </button>
+      )}
 
       {form && (
         <Formulario
           sugestao={proximoLivre(grupos)}
           biblioteca={biblioteca}
-          meus={meus}
           onSalvarNaBiblioteca={(nome, canais) =>
             setMeus((m) =>
               m.some((x) => x.nome === nome) ? m : [...m, { nome, canais }]
             )
           }
-          onRemoverDaBiblioteca={(nome) =>
-            setMeus((m) => m.filter((x) => x.nome !== nome))
-          }
+          onRemoverDaBiblioteca={removeDaBiblioteca}
           onFechar={() => setForm(false)}
           onSalvar={(n, c, q, i) => {
             addGrupo(n, c, q, i);
@@ -296,6 +317,8 @@ export default function App() {
           wake={wake}
           somaMaisUm={somaMaisUm}
           onSomaMaisUm={() => setSomaMaisUm((v) => !v)}
+          destaque={destaque}
+          onDestaque={setDestaque}
           rotuloUniverso={`U${atual + 1}`}
           onApagarUniverso={apagaUniverso}
           meus={meus}
@@ -303,6 +326,8 @@ export default function App() {
             setMeus((m) => m.map((x, j) => (j === i ? novo : x)))
           }
           onRemoverMeu={(i) => setMeus((m) => m.filter((_, j) => j !== i))}
+          ocultos={ocultos.length}
+          onRestaurar={() => setOcultos([])}
           onFechar={() => setConfig(false)}
         />
       )}

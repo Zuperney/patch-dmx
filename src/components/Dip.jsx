@@ -8,7 +8,11 @@ export default function Dip({ valor, somaMaisUm, apagado }) {
         <span
           key={i}
           className={`h-4 w-2 rounded-sm ${
-            c ? (apagado ? "bg-neutral-700" : "bg-amber-400") : "bg-neutral-800"
+            c
+              ? apagado
+                ? "bg-neutral-700"
+                : "bg-(--destaque-claro)"
+              : "bg-neutral-800"
           }`}
           title={`chave ${i + 1}`}
         />

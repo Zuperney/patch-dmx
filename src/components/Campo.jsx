@@ -7,7 +7,7 @@ export default function Campo({ label, valor, onChange, num }) {
         inputMode={num ? "numeric" : "text"}
         value={valor}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full rounded border border-neutral-800 bg-neutral-900 px-3 py-2 text-neutral-100 outline-none focus:border-amber-500"
+        className="w-full rounded-lg border border-neutral-800 bg-neutral-900 px-3 py-3 text-base text-neutral-100 outline-none focus:border-(--destaque)"
       />
     </label>
   );

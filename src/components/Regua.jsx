@@ -9,7 +9,7 @@ export default function Regua({ grupos }) {
         return (
           <div
             key={b}
-            className={`flex-1 ${cheio ? "bg-amber-500" : "bg-neutral-800"}`}
+            className={`flex-1 ${cheio ? "bg-(--destaque)" : "bg-neutral-800"}`}
           />
         );
       })}
