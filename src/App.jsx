@@ -11,7 +11,11 @@ import { PADRAO } from "./lib/biblioteca.js";
 import { TEMAS } from "./lib/temas.js";
 import { carregar, salvar } from "./db.js";
 import { useWakeLock } from "./hooks/useWakeLock.js";
-import { IconeSol, IconeEngrenagem } from "./components/Icones.jsx";
+import {
+  IconeSol,
+  IconeEngrenagem,
+  IconeMais,
+} from "./components/Icones.jsx";
 import Regua from "./components/Regua.jsx";
 import Grupo from "./components/Grupo.jsx";
 import Formulario from "./components/Formulario.jsx";
@@ -373,9 +377,9 @@ export default function App() {
           onClick={() => setForm(true)}
           aria-label="Adicionar equipamento"
           title="Adicionar equipamento"
-          className="fab-halo botao-neon pop-ok fixed bottom-[max(1.25rem,env(safe-area-inset-bottom))] right-4 z-20 flex h-14 w-14 items-center justify-center rounded-full bg-(--destaque) text-2xl font-bold leading-none text-neutral-950 transition-transform active:scale-95 active:bg-(--destaque-ativo)"
+          className="fab-halo fab-orbe pop-ok fixed bottom-[max(1.25rem,env(safe-area-inset-bottom))] right-4 z-20 flex h-14 w-14 items-center justify-center rounded-full text-neutral-950 transition-transform duration-200 active:scale-90"
         >
-          +
+          <IconeMais />
         </button>
       )}
 

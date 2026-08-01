@@ -27,6 +27,21 @@ export function IconeSol({ cheio }) {
   );
 }
 
+export function IconeMais() {
+  return (
+    <svg
+      {...base}
+      width={26}
+      height={26}
+      strokeWidth={2.5}
+      aria-hidden="true"
+    >
+      <path d="M5 12h14" />
+      <path d="M12 5v14" />
+    </svg>
+  );
+}
+
 export function IconeEngrenagem() {
   return (
     <svg {...base} aria-hidden="true">
