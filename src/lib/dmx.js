@@ -21,6 +21,10 @@ export function colide(grupo, grupos) {
   );
 }
 
+/* quantos aparelhos do grupo cabem inteiros até o canal 512 */
+export const cabem = (g) =>
+  Math.max(0, Math.floor((CANAIS_UNIVERSO - g.inicio + 1) / g.canais));
+
 /* dip switch: chaves 1..9 valem 1,2,4...256 */
 export const dip = (endereco, somaMaisUm) => {
   const valor = somaMaisUm ? endereco - 1 : endereco;

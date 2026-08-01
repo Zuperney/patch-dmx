@@ -4,3 +4,19 @@ html {
   /* evita zoom acidental de duplo toque em campo */
   touch-action: manipulation;
 }
+
+body {
+  /* sem pull-to-refresh nem "bounce" acidental durante a montagem */
+  overscroll-behavior-y: contain;
+}
+
+* {
+  /* sem flash azul de toque no Android/iOS */
+  -webkit-tap-highlight-color: transparent;
+}
+
+button {
+  /* segurar o dedo num botão não deve selecionar texto */
+  -webkit-user-select: none;
+  user-select: none;
+}

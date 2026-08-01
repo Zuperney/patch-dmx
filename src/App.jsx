@@ -1,10 +1,19 @@
 import { useState, useEffect, useRef } from "react";
-import { CANAIS_UNIVERSO, uid, proximoLivre, colide } from "./lib/dmx.js";
+import {
+  CANAIS_UNIVERSO,
+  uid,
+  fim,
+  cabem,
+  proximoLivre,
+  colide,
+} from "./lib/dmx.js";
 import { PADRAO } from "./lib/biblioteca.js";
 import { carregar, salvar } from "./db.js";
+import { useWakeLock } from "./hooks/useWakeLock.js";
 import Regua from "./components/Regua.jsx";
 import Grupo from "./components/Grupo.jsx";
 import Formulario from "./components/Formulario.jsx";
+import Config from "./components/Config.jsx";
 
 export default function App() {
   const [universos, setUniversos] = useState([{ id: uid(), grupos: [] }]);
@@ -13,9 +22,11 @@ export default function App() {
   const [somaMaisUm, setSomaMaisUm] = useState(false);
   const [meus, setMeus] = useState([]); // biblioteca do usuário
   const [form, setForm] = useState(false);
-  const [confirmaUni, setConfirmaUni] = useState(false);
+  const [config, setConfig] = useState(false);
+  const [confirmaEstouro, setConfirmaEstouro] = useState(false);
   const [pronto, setPronto] = useState(false);
   const primeiraVez = useRef(true);
+  const wake = useWakeLock();
 
   useEffect(() => {
     carregar().then((d) => {
@@ -40,6 +51,12 @@ export default function App() {
   const usados = grupos.reduce((s, g) => s + g.qtd * g.canais, 0);
   const biblioteca = [...PADRAO, ...meus];
 
+  /* aparelhos que passam do 512 neste universo */
+  const estourando = grupos.reduce(
+    (s, g) => s + Math.max(0, g.qtd - cabem(g)),
+    0
+  );
+
   /* mutações -------------------------------------------------- */
   const setGrupos = (fn) =>
     setUniversos((us) =>
@@ -55,6 +72,19 @@ export default function App() {
   const removeGrupo = (id) => {
     setGrupos((gs) => gs.filter((g) => g.id !== id));
     setAberto(null);
+  };
+
+  /* corta cada grupo no que cabe; some quem nem começa dentro do universo */
+  const apagaEstouros = () => {
+    setGrupos((gs) =>
+      gs.flatMap((g) => {
+        if (fim(g) <= CANAIS_UNIVERSO) return [g];
+        const c = cabem(g);
+        if (c <= 0) return [];
+        return [{ ...g, qtd: c, feitos: g.feitos.filter((i) => i < c) }];
+      })
+    );
+    setConfirmaEstouro(false);
   };
 
   const alterna = (id, i) =>
@@ -96,7 +126,6 @@ export default function App() {
     setUniversos((us) => [...us, { id: uid(), grupos: [] }]);
     setAtual(universos.length);
     setAberto(null);
-    setConfirmaUni(false);
   };
 
   const apagaUniverso = () => {
@@ -106,7 +135,7 @@ export default function App() {
     });
     setAtual((a) => (a > 0 ? a - 1 : 0));
     setAberto(null);
-    setConfirmaUni(false);
+    setConfig(false);
   };
 
   /* ------------------------------------------------------------ */
@@ -114,30 +143,29 @@ export default function App() {
     <div className="min-h-screen bg-neutral-950 text-neutral-200 tabular-nums">
       <div className="mx-auto max-w-2xl pb-32">
         {/* cabeçalho */}
-        <header className="sticky top-0 z-20 border-b border-neutral-800 bg-neutral-950 px-4 pt-4 pb-3">
+        <header className="sticky top-0 z-20 border-b border-neutral-800 bg-neutral-950 px-4 pb-3 pt-[max(1rem,env(safe-area-inset-top))]">
           <div className="flex items-center justify-between">
             <h1 className="text-sm font-semibold uppercase tracking-widest text-neutral-400">
               Patch DMX
             </h1>
             <div className="flex gap-1.5">
+              {wake.suportado && (
+                <button
+                  onClick={wake.alternar}
+                  className={`rounded border px-3 py-1.5 text-xs ${
+                    wake.ativo
+                      ? "border-amber-500 bg-amber-500/10 text-amber-400"
+                      : "border-neutral-700 text-neutral-400"
+                  }`}
+                >
+                  {wake.ativo ? "☀ Tela acesa" : "☀ Tela"}
+                </button>
+              )}
               <button
-                onClick={() => setSomaMaisUm((v) => !v)}
-                className="rounded border border-neutral-700 px-2 py-0.5 text-xs text-neutral-400"
+                onClick={() => setConfig(true)}
+                className="rounded border border-neutral-700 px-3 py-1.5 text-xs text-neutral-400"
               >
-                DIP: {somaMaisUm ? "soma+1" : "soma"}
-              </button>
-              <button
-                onClick={() =>
-                  confirmaUni ? apagaUniverso() : setConfirmaUni(true)
-                }
-                onBlur={() => setConfirmaUni(false)}
-                className={`rounded border px-2 py-0.5 text-xs ${
-                  confirmaUni
-                    ? "border-red-600 bg-red-950 text-red-300"
-                    : "border-neutral-700 text-neutral-500"
-                }`}
-              >
-                {confirmaUni ? `Apagar U${atual + 1}?` : "Apagar universo"}
+                ⚙ Config
               </button>
             </div>
           </div>
@@ -150,9 +178,8 @@ export default function App() {
                 onClick={() => {
                   setAtual(i);
                   setAberto(null);
-                  setConfirmaUni(false);
                 }}
-                className={`shrink-0 rounded px-3 py-1 text-sm font-medium ${
+                className={`shrink-0 rounded px-4 py-1.5 text-sm font-medium ${
                   i === atual
                     ? "bg-amber-500 text-neutral-950"
                     : "border border-neutral-700 text-neutral-400"
@@ -163,7 +190,7 @@ export default function App() {
             ))}
             <button
               onClick={novoUniverso}
-              className="shrink-0 rounded border border-dashed border-neutral-700 px-3 py-1 text-sm text-neutral-500"
+              className="shrink-0 rounded border border-dashed border-neutral-700 px-4 py-1.5 text-sm text-neutral-500"
             >
               +
             </button>
@@ -184,6 +211,30 @@ export default function App() {
 
         {/* lista */}
         <main className="px-4">
+          {estourando > 0 && (
+            <div className="mt-3 rounded border border-red-800 bg-red-950/60 p-3">
+              <p className="text-xs text-red-300">
+                {estourando} {estourando === 1 ? "aparelho passa" : "aparelhos passam"}{" "}
+                do 512 neste universo.
+              </p>
+              <button
+                onClick={() =>
+                  confirmaEstouro ? apagaEstouros() : setConfirmaEstouro(true)
+                }
+                onBlur={() => setConfirmaEstouro(false)}
+                className={`mt-2 w-full rounded border py-2.5 text-sm font-medium ${
+                  confirmaEstouro
+                    ? "border-red-500 bg-red-900 text-red-200"
+                    : "border-red-800 text-red-300"
+                }`}
+              >
+                {confirmaEstouro
+                  ? `Apagar ${estourando} de verdade?`
+                  : "Apagar tudo que passa do 512"}
+              </button>
+            </div>
+          )}
+
           {grupos.length === 0 && (
             <p className="py-16 text-center text-sm text-neutral-500">
               Universo vazio. Adicione o primeiro equipamento.
@@ -212,7 +263,7 @@ export default function App() {
         <div className="mx-auto max-w-2xl">
           <button
             onClick={() => setForm(true)}
-            className="w-full rounded bg-amber-500 py-3 text-sm font-semibold uppercase tracking-wider text-neutral-950 active:bg-amber-600"
+            className="w-full rounded bg-amber-500 py-3.5 text-sm font-semibold uppercase tracking-wider text-neutral-950 active:bg-amber-600"
           >
             Adicionar equipamento
           </button>
@@ -237,6 +288,22 @@ export default function App() {
             addGrupo(n, c, q, i);
             setForm(false);
           }}
+        />
+      )}
+
+      {config && (
+        <Config
+          wake={wake}
+          somaMaisUm={somaMaisUm}
+          onSomaMaisUm={() => setSomaMaisUm((v) => !v)}
+          rotuloUniverso={`U${atual + 1}`}
+          onApagarUniverso={apagaUniverso}
+          meus={meus}
+          onEditarMeu={(i, novo) =>
+            setMeus((m) => m.map((x, j) => (j === i ? novo : x)))
+          }
+          onRemoverMeu={(i) => setMeus((m) => m.filter((_, j) => j !== i))}
+          onFechar={() => setConfig(false)}
         />
       )}
     </div>

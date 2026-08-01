@@ -16,7 +16,10 @@ tela inicial (é um PWA — instala como app e funciona sem internet).
 - Marcação de "onde parei" por aparelho, individual e fora de ordem
 - Detecção de colisão entre grupos e de estouro do universo, apontando o
   aparelho exato onde estoura
-- Biblioteca de equipamentos de fábrica + biblioteca do usuário
+- Biblioteca de equipamentos de fábrica + biblioteca do usuário, com edição e
+  exclusão nas configurações
+- Botão para apagar de uma vez tudo que passa do 512 no universo
+- "Manter tela acesa" (Wake Lock) para o celular não apagar durante a montagem
 - Persistência automática em IndexedDB — nenhum botão de salvar
 
 ## Desenvolvimento
