@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+/* ================================================================
+   Reset / ajustes mobile
+   ================================================================ */
+
 html {
   /* evita zoom acidental de duplo toque em campo */
   touch-action: manipulation;
@@ -19,4 +23,450 @@ button {
   /* segurar o dedo num botão não deve selecionar texto */
   -webkit-user-select: none;
   user-select: none;
+}
+
+/* ================================================================
+   A. Propriedades registradas + transição de tema
+   ================================================================ */
+
+@property --ang {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+@property --destaque {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #f59e0b;
+}
+@property --destaque-claro {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #fbbf24;
+}
+@property --destaque-ativo {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #d97706;
+}
+
+/* trocar o tema anima todas as cores derivadas de uma vez */
+.transicao-tema {
+  transition:
+    --destaque var(--dur, 500ms) ease,
+    --destaque-claro var(--dur, 500ms) ease,
+    --destaque-ativo var(--dur, 500ms) ease;
+}
+
+/* ================================================================
+   Gates globais: efeitos off / reduced motion
+   --anim pausa loops (frame 0 é sempre um estado bonito);
+   --dur: 0s zera entradas (aparecem instantâneas)
+   ================================================================ */
+
+[data-efeitos="off"] {
+  --anim: paused;
+  --dur: 0s;
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-efeitos] {
+    --anim: paused;
+    --dur: 0s;
+  }
+}
+[data-efeitos="off"] .vidro {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  background-color: #0c0c0e;
+}
+[data-efeitos="off"] .veu {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+[data-efeitos="off"] .brilho-progresso,
+[data-efeitos="off"] .fundo-cena {
+  display: none;
+}
+
+/* ================================================================
+   B. Fundo: blobs de luz + grade neon + ruído
+   ================================================================ */
+
+.fundo-cena {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.blob {
+  position: absolute;
+  width: 65vmax;
+  height: 65vmax;
+  border-radius: 9999px;
+  /* gradiente pré-suavizado — nunca filter: blur() aqui */
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--destaque) 16%, transparent) 0%,
+    color-mix(in srgb, var(--destaque) 6%, transparent) 40%,
+    transparent 70%
+  );
+  will-change: transform;
+  animation: flutua 48s ease-in-out infinite alternate;
+  animation-play-state: var(--anim, running);
+}
+.blob:nth-child(2) {
+  animation-duration: 64s;
+  animation-delay: -22s;
+  animation-direction: alternate-reverse;
+}
+
+@keyframes flutua {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(7vw, -5vh, 0) scale(1.12);
+  }
+  100% {
+    transform: translate3d(-5vw, 4vh, 0) scale(0.94);
+  }
+}
+
+/* grade de canais — identidade DMX, desvanece nas bordas */
+.grade-neon {
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(
+      color-mix(in srgb, var(--destaque) 5%, transparent) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--destaque) 5%, transparent) 1px,
+      transparent 1px
+    );
+  background-size: 48px 48px;
+  mask-image: radial-gradient(ellipse 80% 70% at 50% 30%, black, transparent);
+  -webkit-mask-image: radial-gradient(
+    ellipse 80% 70% at 50% 30%,
+    black,
+    transparent
+  );
+}
+
+.ruido {
+  position: absolute;
+  inset: 0;
+  opacity: 0.05;
+  background-size: 140px 140px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.6'/%3E%3C/svg%3E");
+}
+
+/* ================================================================
+   C. Vidro líquido (sombra multicamada + reflexo molhado)
+   ================================================================ */
+
+.vidro {
+  backdrop-filter: blur(18px) saturate(160%);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
+  box-shadow:
+    0 10px 30px -10px rgb(0 0 0 / 0.8),
+    inset 0 2px 3px -1px rgb(255 255 255 / 0.25),
+    inset 0 -2px 4px -1px rgb(255 255 255 / 0.05),
+    inset 0 0 0 1px rgb(255 255 255 / 0.06);
+}
+
+/* reflexo "molhado" na metade superior */
+.reflexo {
+  position: relative;
+}
+.reflexo::before {
+  content: "";
+  position: absolute;
+  inset: 1px 1px auto 1px;
+  height: 45%;
+  border-radius: inherit;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  background: linear-gradient(rgb(255 255 255 / 0.07), transparent);
+  pointer-events: none;
+}
+
+/* ================================================================
+   D. Entradas (véu, sheet, expansão)
+   ================================================================ */
+
+.entra-veu {
+  animation: surge-veu var(--dur, 250ms) ease-out;
+}
+@keyframes surge-veu {
+  from {
+    opacity: 0;
+  }
+}
+
+.entra-sheet {
+  animation: surge-sheet var(--dur, 320ms) cubic-bezier(0.32, 0.72, 0, 1);
+}
+@keyframes surge-sheet {
+  from {
+    transform: translateY(100%);
+  }
+}
+@media (min-width: 640px) {
+  .entra-sheet {
+    animation-name: surge-pop;
+  }
+  @keyframes surge-pop {
+    from {
+      transform: translateY(16px) scale(0.98);
+      opacity: 0;
+    }
+  }
+}
+
+.entra-expande {
+  animation: surge-lista var(--dur, 250ms) ease-out;
+}
+@keyframes surge-lista {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
+
+/* ================================================================
+   E. Bordas vivas (conic girando) + halo do FAB
+   ================================================================ */
+
+@keyframes gira-borda {
+  to {
+    --ang: 360deg;
+  }
+}
+
+/* card do grupo aberto: interior escuro + arco da cor do tema */
+.borda-viva {
+  border-color: transparent;
+  background:
+    linear-gradient(rgb(20 20 22 / 0.92), rgb(13 13 15 / 0.92)) padding-box,
+    conic-gradient(
+        from var(--ang),
+        var(--destaque),
+        rgb(255 255 255 / 0.1) 70deg,
+        transparent 130deg,
+        var(--destaque-claro) 200deg,
+        transparent 290deg,
+        var(--destaque)
+      )
+      border-box;
+  animation: gira-borda 4s linear infinite;
+  animation-play-state: var(--anim, running);
+}
+
+/* botão wake ativo: miolo na cor do tema + arco branco girando */
+.borda-viva-cheia {
+  border-color: transparent;
+  background:
+    linear-gradient(var(--destaque), var(--destaque)) padding-box,
+    conic-gradient(
+        from var(--ang),
+        rgb(255 255 255 / 0.9),
+        transparent 40%,
+        rgb(255 255 255 / 0.9) 50%,
+        transparent 90%,
+        rgb(255 255 255 / 0.9)
+      )
+      border-box;
+  animation: gira-borda 3s linear infinite;
+  animation-play-state: var(--anim, running);
+}
+
+/* halo respirando atrás do FAB (transform/opacity, custo ~zero) */
+.fab-halo {
+  position: relative;
+}
+.fab-halo::before {
+  content: "";
+  position: absolute;
+  inset: -7px;
+  border-radius: 9999px;
+  z-index: -1;
+  background: radial-gradient(
+    closest-side,
+    color-mix(in srgb, var(--destaque) 45%, transparent),
+    transparent 78%
+  );
+  animation: respira 2.6s ease-in-out infinite;
+  animation-play-state: var(--anim, running);
+}
+@keyframes respira {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.55;
+  }
+  50% {
+    transform: scale(1.18);
+    opacity: 0.95;
+  }
+}
+
+/* ================================================================
+   F. Micro-animações
+   ================================================================ */
+
+.pop-ok {
+  display: inline-block;
+  animation: pop var(--dur, 300ms) cubic-bezier(0.2, 1.6, 0.4, 1);
+}
+@keyframes pop {
+  0% {
+    transform: scale(0.3);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.25);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* shimmer da barra de progresso (frame 0 = brilho fora da tela) */
+.brilho-progresso {
+  background-image: linear-gradient(
+    105deg,
+    transparent 42%,
+    rgb(255 255 255 / 0.5) 50%,
+    transparent 58%
+  );
+  background-size: 250% 100%;
+  background-repeat: no-repeat;
+  animation: varre 2.4s ease-in-out infinite;
+  animation-play-state: var(--anim, running);
+}
+@keyframes varre {
+  from {
+    background-position: 180% 0;
+  }
+  to {
+    background-position: -80% 0;
+  }
+}
+
+/* pulso do banner de estouro — glow pré-desenhado, só opacity anima */
+.pulsa-alerta {
+  position: relative;
+  isolation: isolate;
+}
+.pulsa-alerta::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  z-index: -1;
+  background: radial-gradient(
+    120% 100% at 50% 0%,
+    rgb(239 68 68 / 0.2),
+    transparent 70%
+  );
+  animation: pulsa 2s ease-in-out infinite;
+  animation-play-state: var(--anim, running);
+}
+@keyframes pulsa {
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* ================================================================
+   G. Neon + premium
+   ================================================================ */
+
+.titulo-neon {
+  background: linear-gradient(
+    105deg,
+    var(--destaque-claro),
+    var(--destaque) 60%,
+    var(--destaque-claro)
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0 14px var(--destaque-fraco));
+}
+
+.borda-gradiente-baixo {
+  border-bottom: 1px solid transparent;
+  border-image: linear-gradient(
+      90deg,
+      transparent,
+      var(--destaque) 50%,
+      transparent
+    )
+    1;
+}
+
+.botao-neon {
+  box-shadow:
+    0 0 24px var(--destaque-fraco),
+    inset 0 1px 0 rgb(255 255 255 / 0.25);
+}
+
+/* fill da barra de progresso com brilho derramando */
+.progresso-liquido {
+  background: linear-gradient(90deg, var(--destaque), var(--destaque-claro));
+  box-shadow: 0 0 12px var(--destaque);
+}
+
+/* glow atrás do numeral do endereço atual — texto continua puro */
+.brilho-num {
+  text-shadow:
+    0 0 10px var(--destaque-fraco),
+    0 0 22px var(--destaque-fraco);
+}
+
+/* seletor de cor: bolinha, e arco branco girando na selecionada */
+.bolinha {
+  background: var(--cor);
+}
+.bolinha-ativa {
+  border: 2px solid transparent !important;
+  background:
+    linear-gradient(var(--cor), var(--cor)) padding-box,
+    conic-gradient(
+        from var(--ang),
+        #fff,
+        transparent 25%,
+        #fff 50%,
+        transparent 75%,
+        #fff
+      )
+      border-box;
+  animation: gira-borda 3s linear infinite;
+  animation-play-state: var(--anim, running);
+}
+
+/* scrollbar fina na cor do tema */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--destaque) 30%, #333);
+}
+html {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--destaque) 30%, #333) transparent;
 }

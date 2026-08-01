@@ -23,8 +23,8 @@ export default function Formulario({
   const fimTotal = +inicio + +qtd * +canais - 1;
 
   return (
-    <div className="fixed inset-0 z-30 flex items-end justify-center bg-black/70 backdrop-blur-sm sm:items-center">
-      <div className="flex max-h-[92dvh] w-full flex-col rounded-t-2xl border-t border-neutral-800 bg-neutral-950 sm:max-w-md sm:rounded-2xl sm:border">
+    <div className="veu entra-veu fixed inset-0 z-30 flex items-end justify-center bg-black/70 backdrop-blur-sm sm:items-center">
+      <div className="entra-sheet vidro reflexo flex max-h-[92dvh] w-full flex-col rounded-t-2xl border-t border-white/10 bg-neutral-950/80 sm:max-w-md sm:rounded-2xl sm:border">
         {/* alça do sheet */}
         <div className="mx-auto mt-2.5 h-1 w-10 shrink-0 rounded-full bg-neutral-700" />
 

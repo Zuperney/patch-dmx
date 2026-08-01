@@ -7,13 +7,17 @@ export default function Dip({ valor, somaMaisUm, apagado }) {
       {chaves.map((c, i) => (
         <span
           key={i}
-          className={`h-4 w-2 rounded-sm ${
+          className={`h-4 w-2 rounded-sm transition-colors ${
             c
               ? apagado
                 ? "bg-neutral-700"
                 : "bg-(--destaque-claro)"
               : "bg-neutral-800"
           }`}
+          style={{
+            transitionDuration: "var(--dur, 250ms)",
+            transitionDelay: `${i * 25}ms`,
+          }}
           title={`chave ${i + 1}`}
         />
       ))}

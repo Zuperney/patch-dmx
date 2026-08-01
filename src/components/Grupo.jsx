@@ -31,12 +31,12 @@ export default function Grupo({
 
   return (
     <section
-      className={`mt-3 overflow-hidden rounded-xl border bg-neutral-900/30 ${
+      className={`mt-3 overflow-hidden rounded-xl border ${
         conflito || estoura
-          ? "border-red-800"
+          ? "border-red-800 bg-neutral-900/30"
           : aberto
-          ? "border-neutral-700"
-          : "border-neutral-800"
+          ? "borda-viva"
+          : "border-neutral-800 bg-neutral-900/30"
       }`}
     >
       <div className="flex items-stretch">
@@ -92,13 +92,16 @@ export default function Grupo({
       </div>
 
       {/* progresso do endereçamento */}
-      <div className="h-1 w-full bg-neutral-900">
+      <div className="relative h-1 w-full bg-neutral-900">
         <div
           className={`h-full transition-all ${
-            completo ? "bg-emerald-500" : "bg-(--destaque)"
+            completo ? "bg-emerald-500 shadow-[0_0_12px_#10b981]" : "progresso-liquido"
           }`}
           style={{ width: `${pct}%` }}
         />
+        {aberto && !completo && (
+          <div className="brilho-progresso absolute inset-0" />
+        )}
       </div>
 
       {estoura && (
@@ -115,7 +118,7 @@ export default function Grupo({
       )}
 
       {aberto && (
-        <div className="border-t border-neutral-800">
+        <div className="entra-expande border-t border-neutral-800">
           <ul>
             {lista.map((end, i) => {
               const ok = feitos.has(i);
@@ -145,7 +148,7 @@ export default function Grupo({
                       <span
                         className={`w-6 shrink-0 text-xs ${
                           ok
-                            ? "text-emerald-500"
+                            ? "pop-ok text-emerald-500"
                             : fora
                             ? "text-red-500"
                             : "text-neutral-600"
@@ -160,7 +163,7 @@ export default function Grupo({
                             : fora
                             ? "text-red-400"
                             : eAtual
-                            ? "text-(--destaque-claro)"
+                            ? "brilho-num text-(--destaque-claro)"
                             : "text-neutral-200"
                         }`}
                       >
@@ -204,11 +207,11 @@ export default function Grupo({
           </ul>
 
           {/* barra de ações flutuante: acompanha a rolagem da lista */}
-          <div className="sticky bottom-0 z-10 flex gap-2 border-t border-neutral-800 bg-neutral-950/95 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur">
+          <div className="vidro sticky bottom-0 z-10 flex gap-2 border-t border-white/10 bg-neutral-950/75 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
             <button
               onClick={onAvanca}
               disabled={completo}
-              className="flex-1 rounded-lg bg-(--destaque) py-3.5 text-sm font-bold text-neutral-950 active:bg-(--destaque-ativo) disabled:bg-neutral-800 disabled:text-neutral-600"
+              className="botao-neon flex-1 rounded-lg bg-(--destaque) py-3.5 text-sm font-bold text-neutral-950 transition-transform active:scale-[0.97] active:bg-(--destaque-ativo) disabled:bg-neutral-800 disabled:text-neutral-600 disabled:shadow-none"
             >
               {completo ? "Tudo endereçado" : `Endereçar ${pad(lista[atual])} →`}
             </button>

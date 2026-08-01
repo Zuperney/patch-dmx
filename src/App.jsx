@@ -26,6 +26,7 @@ export default function App() {
   const [meus, setMeus] = useState([]); // biblioteca do usuário
   const [ocultos, setOcultos] = useState([]); // itens de fábrica removidos
   const [destaque, setDestaque] = useState("ambar");
+  const [efeitos, setEfeitos] = useState(true);
   const [form, setForm] = useState(false);
   const [config, setConfig] = useState(false);
   const [confirmaEstouro, setConfirmaEstouro] = useState(false);
@@ -42,6 +43,7 @@ export default function App() {
       if (d?.meus?.length) setMeus(d.meus);
       if (d?.ocultos?.length) setOcultos(d.ocultos);
       if (d?.destaque && TEMAS[d.destaque]) setDestaque(d.destaque);
+      if (d?.efeitos === false) setEfeitos(false);
       setPronto(true);
     });
   }, []);
@@ -52,8 +54,8 @@ export default function App() {
       primeiraVez.current = false;
       return;
     }
-    salvar({ universos, somaMaisUm, mostraDip, meus, ocultos, destaque });
-  }, [universos, somaMaisUm, mostraDip, meus, ocultos, destaque, pronto]);
+    salvar({ universos, somaMaisUm, mostraDip, meus, ocultos, destaque, efeitos });
+  }, [universos, somaMaisUm, mostraDip, meus, ocultos, destaque, efeitos, pronto]);
 
   const uni = universos[atual] ?? { grupos: [] };
   const grupos = uni.grupos;
@@ -194,7 +196,8 @@ export default function App() {
   /* ------------------------------------------------------------ */
   return (
     <div
-      className="min-h-screen bg-neutral-950 text-neutral-200 tabular-nums"
+      className="transicao-tema relative min-h-screen bg-neutral-950 text-neutral-200 tabular-nums"
+      data-efeitos={efeitos ? "on" : "off"}
       style={{
         "--destaque": tema.cor,
         "--destaque-claro": tema.claro,
@@ -202,11 +205,19 @@ export default function App() {
         "--destaque-fraco": `color-mix(in srgb, ${tema.cor} 12%, transparent)`,
       }}
     >
-      <div className="mx-auto max-w-2xl pb-28">
+      {/* luz ambiente: blobs + grade de canais + ruído */}
+      <div className="fundo-cena" aria-hidden="true">
+        <div className="blob" style={{ top: "-22vmax", left: "-18vmax" }} />
+        <div className="blob" style={{ bottom: "-26vmax", right: "-20vmax" }} />
+        <div className="grade-neon" />
+        <div className="ruido" />
+      </div>
+
+      <div className="relative z-10 mx-auto max-w-2xl pb-28">
         {/* cabeçalho */}
-        <header className="sticky top-0 z-20 border-b border-neutral-800 bg-neutral-950 px-4 pb-3 pt-[max(1rem,env(safe-area-inset-top))]">
+        <header className="vidro borda-gradiente-baixo sticky top-0 z-20 bg-neutral-950/70 px-4 pb-3 pt-[max(1rem,env(safe-area-inset-top))]">
           <div className="flex items-center justify-between">
-            <h1 className="text-sm font-semibold uppercase tracking-widest text-neutral-400">
+            <h1 className="titulo-neon text-sm font-bold uppercase tracking-widest">
               Patch DMX
             </h1>
             <div className="flex gap-1.5">
@@ -219,7 +230,7 @@ export default function App() {
                   title="Manter a tela acesa"
                   className={`flex h-10 w-10 items-center justify-center rounded-lg border transition-all duration-200 active:scale-90 ${
                     wake.ativo
-                      ? "border-(--destaque) bg-(--destaque) text-neutral-950 shadow-[0_0_12px_var(--destaque-fraco)]"
+                      ? "borda-viva-cheia text-neutral-950 shadow-[0_0_12px_var(--destaque-fraco)]"
                       : "border-neutral-700 text-neutral-400"
                   }`}
                 >
@@ -237,8 +248,17 @@ export default function App() {
             </div>
           </div>
 
-          {/* universos */}
-          <div className="mt-3 flex items-center gap-1.5 overflow-x-auto">
+          {/* universos — pill desliza atrás da aba ativa */}
+          <div className="relative mt-3 flex items-center gap-1.5 overflow-x-auto">
+            <span
+              aria-hidden="true"
+              className="absolute left-0 top-0 h-full w-14 rounded-lg bg-(--destaque) transition-transform"
+              style={{
+                transform: `translateX(calc(${atual} * (3.5rem + 0.375rem)))`,
+                transitionDuration: "var(--dur, 300ms)",
+                transitionTimingFunction: "cubic-bezier(0.25, 1, 0.5, 1.15)",
+              }}
+            />
             {universos.map((u, i) => (
               <button
                 key={u.id}
@@ -246,18 +266,19 @@ export default function App() {
                   setAtual(i);
                   setAberto(null);
                 }}
-                className={`shrink-0 rounded-lg px-4 py-1.5 text-sm font-medium ${
+                className={`relative w-14 shrink-0 rounded-lg py-1.5 text-center text-sm font-medium transition-transform ${
                   i === atual
-                    ? "bg-(--destaque) text-neutral-950"
+                    ? "scale-105 text-neutral-950"
                     : "border border-neutral-700 text-neutral-400"
                 }`}
+                style={{ transitionDuration: "var(--dur, 300ms)" }}
               >
                 U{i + 1}
               </button>
             ))}
             <button
               onClick={novoUniverso}
-              className="shrink-0 rounded-lg border border-dashed border-neutral-700 px-4 py-1.5 text-sm text-neutral-500"
+              className="w-14 shrink-0 rounded-lg border border-dashed border-neutral-700 py-1.5 text-center text-sm text-neutral-500"
             >
               +
             </button>
@@ -276,10 +297,10 @@ export default function App() {
           </div>
         </header>
 
-        {/* lista */}
-        <main className="px-4">
+        {/* lista — key troca com o universo para animar a entrada */}
+        <main key={uni.id} className="entra-expande px-4">
           {estourando > 0 && (
-            <div className="mt-3 rounded-xl border border-red-800 bg-red-950/60 p-3">
+            <div className="pulsa-alerta mt-3 rounded-xl border border-red-800 bg-red-950/60 p-3">
               <p className="text-xs text-red-300">
                 {estourando}{" "}
                 {estourando === 1 ? "aparelho passa" : "aparelhos passam"} do
@@ -350,7 +371,7 @@ export default function App() {
       {aberto === null && !form && !config && (
         <button
           onClick={() => setForm(true)}
-          className="fixed bottom-[max(1.25rem,env(safe-area-inset-bottom))] right-4 z-20 flex items-center gap-1.5 rounded-full bg-(--destaque) py-4 pl-5 pr-6 text-sm font-bold uppercase tracking-wide text-neutral-950 shadow-lg shadow-black/50 active:bg-(--destaque-ativo)"
+          className="fab-halo botao-neon pop-ok fixed bottom-[max(1.25rem,env(safe-area-inset-bottom))] right-4 z-20 flex items-center gap-1.5 rounded-full bg-(--destaque) py-4 pl-5 pr-6 text-sm font-bold uppercase tracking-wide text-neutral-950 transition-transform active:scale-95 active:bg-(--destaque-ativo)"
         >
           <span className="text-lg leading-none">+</span> Equipamento
         </button>
@@ -383,6 +404,8 @@ export default function App() {
           onMostraDip={() => setMostraDip((v) => !v)}
           destaque={destaque}
           onDestaque={setDestaque}
+          efeitos={efeitos}
+          onEfeitos={() => setEfeitos((v) => !v)}
           meus={meus}
           onEditarMeu={(i, novo) =>
             setMeus((m) => m.map((x, j) => (j === i ? novo : x)))

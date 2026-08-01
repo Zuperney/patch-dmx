@@ -11,6 +11,8 @@ export default function Config({
   onMostraDip,
   destaque,
   onDestaque,
+  efeitos,
+  onEfeitos,
   meus,
   onEditarMeu,
   onRemoverMeu,
@@ -19,8 +21,8 @@ export default function Config({
   onFechar,
 }) {
   return (
-    <div className="fixed inset-0 z-30 flex items-end justify-center bg-black/70 backdrop-blur-sm sm:items-center">
-      <div className="flex max-h-[92dvh] w-full flex-col rounded-t-2xl border-t border-neutral-800 bg-neutral-950 sm:max-w-md sm:rounded-2xl sm:border">
+    <div className="veu entra-veu fixed inset-0 z-30 flex items-end justify-center bg-black/70 backdrop-blur-sm sm:items-center">
+      <div className="entra-sheet vidro reflexo flex max-h-[92dvh] w-full flex-col rounded-t-2xl border-t border-white/10 bg-neutral-950/80 sm:max-w-md sm:rounded-2xl sm:border">
         <div className="mx-auto mt-2.5 h-1 w-10 shrink-0 rounded-full bg-neutral-700" />
 
         <div className="flex shrink-0 items-center justify-between px-4 pb-1 pt-3">
@@ -57,6 +59,21 @@ export default function Config({
             </p>
           )}
 
+          <button
+            onClick={onEfeitos}
+            className={`mb-1 flex w-full items-center justify-between rounded-lg border px-3 py-3 text-sm ${
+              efeitos
+                ? "border-(--destaque) bg-(--destaque-fraco) text-(--destaque-claro)"
+                : "border-neutral-700 text-neutral-300"
+            }`}
+          >
+            <span>Efeitos visuais</span>
+            <span className="text-xs">{efeitos ? "ligados" : "desligados"}</span>
+          </button>
+          <p className="mb-4 text-xs text-neutral-600">
+            Desligue para economizar bateria em aparelho fraco.
+          </p>
+
           {/* cor de destaque */}
           <p className="mb-2 text-xs font-medium uppercase tracking-wider text-neutral-600">
             Cor de destaque
@@ -68,12 +85,12 @@ export default function Config({
                 onClick={() => onDestaque(chave)}
                 aria-label={t.nome}
                 title={t.nome}
-                className={`h-11 w-11 rounded-full border-2 transition-transform active:scale-90 ${
+                className={`bolinha h-11 w-11 rounded-full border-2 transition-transform active:scale-90 ${
                   chave === destaque
-                    ? "scale-110 border-neutral-100"
+                    ? "bolinha-ativa scale-110"
                     : "border-neutral-800"
                 }`}
-                style={{ backgroundColor: t.cor }}
+                style={{ "--cor": t.cor }}
               />
             ))}
           </div>
