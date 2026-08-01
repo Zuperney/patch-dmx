@@ -1,0 +1,6 @@
+@import "tailwindcss";
+
+html {
+  /* evita zoom acidental de duplo toque em campo */
+  touch-action: manipulation;
+}
