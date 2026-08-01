@@ -151,6 +151,10 @@ export default function Config({
               ? `Apagar ${rotuloUniverso} de verdade?`
               : `Apagar ${rotuloUniverso} (universo atual)`}
           </button>
+
+          <p className="mt-5 text-center text-xs text-neutral-700">
+            Patch DMX v{__APP_VERSAO__}
+          </p>
         </div>
       </div>
     </div>

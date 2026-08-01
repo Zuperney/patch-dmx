@@ -181,9 +181,9 @@ export default function App() {
                     wake.ativo ? "Deixar a tela apagar" : "Manter a tela acesa"
                   }
                   title="Manter a tela acesa"
-                  className={`flex h-10 w-10 items-center justify-center rounded-lg border ${
+                  className={`flex h-10 w-10 items-center justify-center rounded-lg border transition-all duration-200 active:scale-90 ${
                     wake.ativo
-                      ? "border-(--destaque) bg-(--destaque-fraco) text-(--destaque-claro)"
+                      ? "border-(--destaque) bg-(--destaque) text-neutral-950 shadow-[0_0_12px_var(--destaque-fraco)]"
                       : "border-neutral-700 text-neutral-400"
                   }`}
                 >
@@ -194,7 +194,7 @@ export default function App() {
                 onClick={() => setConfig(true)}
                 aria-label="Configurações"
                 title="Configurações"
-                className="flex h-10 w-10 items-center justify-center rounded-lg border border-neutral-700 text-neutral-400 active:text-neutral-200"
+                className="flex h-10 w-10 items-center justify-center rounded-lg border border-neutral-700 text-neutral-400 transition-all duration-200 active:scale-90 active:text-neutral-200"
               >
                 <IconeEngrenagem />
               </button>
