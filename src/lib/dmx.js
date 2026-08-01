@@ -21,6 +21,14 @@ export function colide(grupo, grupos) {
   );
 }
 
+/* etiqueta por aparelho: derivada do nome ("Beam 3") ou personalizada */
+export const etiquetaPadrao = (g, i) => `${g.nome.split(" ")[0]} ${i + 1}`;
+
+export const etiquetaDe = (g, i) => {
+  const v = g.etiquetas?.[i];
+  return v && v.trim() ? v : etiquetaPadrao(g, i);
+};
+
 /* quantos aparelhos do grupo cabem inteiros até o canal 512 */
 export const cabem = (g) =>
   Math.max(0, Math.floor((CANAIS_UNIVERSO - g.inicio + 1) / g.canais));

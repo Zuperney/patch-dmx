@@ -6,6 +6,8 @@ import {
   cabem,
   proximoLivre,
   colide,
+  etiquetaDe,
+  etiquetaPadrao,
 } from "./lib/dmx.js";
 import { PADRAO } from "./lib/biblioteca.js";
 import { TEMAS } from "./lib/temas.js";
@@ -93,38 +95,76 @@ export default function App() {
     setAberto(null);
   };
 
+  /* recorta um grupo mantendo só os aparelhos de `indices` (ordem nova).
+     feitos seguem os aparelhos; etiquetas deslocadas são materializadas
+     para preservar a numeração real da vara */
+  const sub = (g, indices) => {
+    const etiquetas = {};
+    indices.forEach((antigo, novo) => {
+      if (antigo !== novo || g.etiquetas?.[antigo]) {
+        const v = etiquetaDe(g, antigo);
+        if (v !== etiquetaPadrao(g, novo)) etiquetas[novo] = v;
+      }
+    });
+    return {
+      ...g,
+      qtd: indices.length,
+      feitos: indices
+        .map((antigo, novo) => (g.feitos.includes(antigo) ? novo : -1))
+        .filter((n) => n !== -1),
+      etiquetas,
+    };
+  };
+
   /* tira um aparelho físico do grupo. Tirar do meio divide o grupo em
-     dois, preservando os endereços dos que já estão pendurados */
+     dois, preservando endereços e etiquetas dos que já estão pendurados */
   const removeAparelho = (id, i) => {
     setGrupos((gs) =>
       gs.flatMap((g) => {
         if (g.id !== id) return [g];
         if (g.qtd === 1) return [];
+        const todos = Array.from({ length: g.qtd }, (_, j) => j);
         if (i === 0)
           return [
-            {
-              ...g,
-              inicio: g.inicio + g.canais,
-              qtd: g.qtd - 1,
-              feitos: g.feitos.filter((j) => j !== 0).map((j) => j - 1),
-            },
+            { ...sub(g, todos.slice(1)), inicio: g.inicio + g.canais },
           ];
-        if (i === g.qtd - 1)
-          return [{ ...g, qtd: g.qtd - 1, feitos: g.feitos.filter((j) => j < i) }];
+        if (i === g.qtd - 1) return [sub(g, todos.slice(0, -1))];
         return [
-          { ...g, qtd: i, feitos: g.feitos.filter((j) => j < i) },
+          sub(g, todos.slice(0, i)),
           {
-            ...g,
+            ...sub(g, todos.slice(i + 1)),
             id: uid(),
             inicio: g.inicio + (i + 1) * g.canais,
-            qtd: g.qtd - 1 - i,
-            feitos: g.feitos.filter((j) => j > i).map((j) => j - i - 1),
           },
         ];
       })
     );
     setAberto((a) => (grupos.find((g) => g.id === id)?.qtd === 1 ? null : a));
   };
+
+  /* etiquetas: grava o texto cru durante a edição… */
+  const setEtiqueta = (id, i, valor) =>
+    setGrupos((gs) =>
+      gs.map((g) =>
+        g.id === id
+          ? { ...g, etiquetas: { ...(g.etiquetas ?? {}), [i]: valor } }
+          : g
+      )
+    );
+
+  /* …e ao concluir descarta vazias e iguais ao padrão */
+  const limpaEtiquetas = (id) =>
+    setGrupos((gs) =>
+      gs.map((g) => {
+        if (g.id !== id) return g;
+        const etiquetas = {};
+        for (const [k, v] of Object.entries(g.etiquetas ?? {})) {
+          const t = (v ?? "").trim();
+          if (t && t !== etiquetaPadrao(g, +k)) etiquetas[k] = t;
+        }
+        return { ...g, etiquetas };
+      })
+    );
 
   /* corta cada grupo no que cabe; some quem nem começa dentro do universo */
   const apagaEstouros = () => {
@@ -346,6 +386,8 @@ export default function App() {
               onDesfaz={() => desfaz(g.id)}
               onRemove={() => removeGrupo(g.id)}
               onRemoveAparelho={(i) => removeAparelho(g.id, i)}
+              onEtiqueta={(i, v) => setEtiqueta(g.id, i, v)}
+              onEtiquetasFim={() => limpaEtiquetas(g.id)}
               somaMaisUm={somaMaisUm}
               mostraDip={mostraDip}
             />
