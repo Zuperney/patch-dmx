@@ -11,6 +11,7 @@ import { PADRAO } from "./lib/biblioteca.js";
 import { TEMAS } from "./lib/temas.js";
 import { carregar, salvar } from "./db.js";
 import { useWakeLock } from "./hooks/useWakeLock.js";
+import { IconeSol, IconeEngrenagem } from "./components/Icones.jsx";
 import Regua from "./components/Regua.jsx";
 import Grupo from "./components/Grupo.jsx";
 import Formulario from "./components/Formulario.jsx";
@@ -176,20 +177,26 @@ export default function App() {
               {wake.suportado && (
                 <button
                   onClick={wake.alternar}
-                  className={`rounded-lg border px-3 py-1.5 text-xs ${
+                  aria-label={
+                    wake.ativo ? "Deixar a tela apagar" : "Manter a tela acesa"
+                  }
+                  title="Manter a tela acesa"
+                  className={`flex h-10 w-10 items-center justify-center rounded-lg border ${
                     wake.ativo
                       ? "border-(--destaque) bg-(--destaque-fraco) text-(--destaque-claro)"
                       : "border-neutral-700 text-neutral-400"
                   }`}
                 >
-                  {wake.ativo ? "☀ Tela acesa" : "☀ Tela"}
+                  <IconeSol cheio={wake.ativo} />
                 </button>
               )}
               <button
                 onClick={() => setConfig(true)}
-                className="rounded-lg border border-neutral-700 px-3 py-1.5 text-xs text-neutral-400"
+                aria-label="Configurações"
+                title="Configurações"
+                className="flex h-10 w-10 items-center justify-center rounded-lg border border-neutral-700 text-neutral-400 active:text-neutral-200"
               >
-                ⚙ Config
+                <IconeEngrenagem />
               </button>
             </div>
           </div>
