@@ -22,12 +22,14 @@ export default function App() {
   const [atual, setAtual] = useState(0);
   const [aberto, setAberto] = useState(null);
   const [somaMaisUm, setSomaMaisUm] = useState(false);
+  const [mostraDip, setMostraDip] = useState(true);
   const [meus, setMeus] = useState([]); // biblioteca do usuário
   const [ocultos, setOcultos] = useState([]); // itens de fábrica removidos
   const [destaque, setDestaque] = useState("ambar");
   const [form, setForm] = useState(false);
   const [config, setConfig] = useState(false);
   const [confirmaEstouro, setConfirmaEstouro] = useState(false);
+  const [confirmaUni, setConfirmaUni] = useState(false);
   const [pronto, setPronto] = useState(false);
   const primeiraVez = useRef(true);
   const wake = useWakeLock();
@@ -36,6 +38,7 @@ export default function App() {
     carregar().then((d) => {
       if (d?.universos?.length) setUniversos(d.universos);
       if (d?.somaMaisUm) setSomaMaisUm(true);
+      if (d?.mostraDip === false) setMostraDip(false);
       if (d?.meus?.length) setMeus(d.meus);
       if (d?.ocultos?.length) setOcultos(d.ocultos);
       if (d?.destaque && TEMAS[d.destaque]) setDestaque(d.destaque);
@@ -49,8 +52,8 @@ export default function App() {
       primeiraVez.current = false;
       return;
     }
-    salvar({ universos, somaMaisUm, meus, ocultos, destaque });
-  }, [universos, somaMaisUm, meus, ocultos, destaque, pronto]);
+    salvar({ universos, somaMaisUm, mostraDip, meus, ocultos, destaque });
+  }, [universos, somaMaisUm, mostraDip, meus, ocultos, destaque, pronto]);
 
   const uni = universos[atual] ?? { grupos: [] };
   const grupos = uni.grupos;
@@ -82,6 +85,39 @@ export default function App() {
   const removeGrupo = (id) => {
     setGrupos((gs) => gs.filter((g) => g.id !== id));
     setAberto(null);
+  };
+
+  /* tira um aparelho físico do grupo. Tirar do meio divide o grupo em
+     dois, preservando os endereços dos que já estão pendurados */
+  const removeAparelho = (id, i) => {
+    setGrupos((gs) =>
+      gs.flatMap((g) => {
+        if (g.id !== id) return [g];
+        if (g.qtd === 1) return [];
+        if (i === 0)
+          return [
+            {
+              ...g,
+              inicio: g.inicio + g.canais,
+              qtd: g.qtd - 1,
+              feitos: g.feitos.filter((j) => j !== 0).map((j) => j - 1),
+            },
+          ];
+        if (i === g.qtd - 1)
+          return [{ ...g, qtd: g.qtd - 1, feitos: g.feitos.filter((j) => j < i) }];
+        return [
+          { ...g, qtd: i, feitos: g.feitos.filter((j) => j < i) },
+          {
+            ...g,
+            id: uid(),
+            inicio: g.inicio + (i + 1) * g.canais,
+            qtd: g.qtd - 1 - i,
+            feitos: g.feitos.filter((j) => j > i).map((j) => j - i - 1),
+          },
+        ];
+      })
+    );
+    setAberto((a) => (grupos.find((g) => g.id === id)?.qtd === 1 ? null : a));
   };
 
   /* corta cada grupo no que cabe; some quem nem começa dentro do universo */
@@ -152,7 +188,7 @@ export default function App() {
     });
     setAtual((a) => (a > 0 ? a - 1 : 0));
     setAberto(null);
-    setConfig(false);
+    setConfirmaUni(false);
   };
 
   /* ------------------------------------------------------------ */
@@ -284,9 +320,28 @@ export default function App() {
               onAvanca={() => avanca(g.id)}
               onDesfaz={() => desfaz(g.id)}
               onRemove={() => removeGrupo(g.id)}
+              onRemoveAparelho={(i) => removeAparelho(g.id, i)}
               somaMaisUm={somaMaisUm}
+              mostraDip={mostraDip}
             />
           ))}
+
+          {/* apagar o universo atual — na tela principal, com dois toques */}
+          <button
+            onClick={() =>
+              confirmaUni ? apagaUniverso() : setConfirmaUni(true)
+            }
+            onBlur={() => setConfirmaUni(false)}
+            className={`mb-4 mt-6 w-full rounded-xl border py-3 text-sm ${
+              confirmaUni
+                ? "border-red-600 bg-red-950 text-red-300"
+                : "border-neutral-800 text-neutral-600"
+            }`}
+          >
+            {confirmaUni
+              ? `Apagar U${atual + 1} de verdade?`
+              : `Apagar universo U${atual + 1}`}
+          </button>
         </main>
       </div>
 
@@ -324,10 +379,10 @@ export default function App() {
           wake={wake}
           somaMaisUm={somaMaisUm}
           onSomaMaisUm={() => setSomaMaisUm((v) => !v)}
+          mostraDip={mostraDip}
+          onMostraDip={() => setMostraDip((v) => !v)}
           destaque={destaque}
           onDestaque={setDestaque}
-          rotuloUniverso={`U${atual + 1}`}
-          onApagarUniverso={apagaUniverso}
           meus={meus}
           onEditarMeu={(i, novo) =>
             setMeus((m) => m.map((x, j) => (j === i ? novo : x)))

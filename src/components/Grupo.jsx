@@ -11,9 +11,12 @@ export default function Grupo({
   onAvanca,
   onDesfaz,
   onRemove,
+  onRemoveAparelho,
   somaMaisUm,
+  mostraDip,
 }) {
   const [confirma, setConfirma] = useState(false);
+  const [confirmaAp, setConfirmaAp] = useState(null);
   const lista = enderecos(g);
   const feitos = new Set(g.feitos);
   const atual = lista.findIndex((_, i) => !feitos.has(i));
@@ -113,49 +116,71 @@ export default function Grupo({
                       <span className="h-px flex-1 bg-red-800" />
                     </div>
                   )}
-                  <button
-                    onClick={() => onAlterna(i)}
-                    className={`flex w-full items-center gap-3 border-b border-neutral-900 px-4 py-3 text-left ${
+                  <div
+                    className={`flex items-stretch border-b border-neutral-900 ${
                       fora ? "bg-red-950" : eAtual ? "bg-neutral-900" : ""
                     }`}
                   >
-                    <span
-                      className={`w-6 text-xs ${
-                        ok
-                          ? "text-emerald-500"
-                          : fora
-                          ? "text-red-500"
-                          : "text-neutral-600"
+                    <button
+                      onClick={() => onAlterna(i)}
+                      className="flex min-w-0 flex-1 items-center gap-3 px-4 py-3 text-left"
+                    >
+                      <span
+                        className={`w-6 shrink-0 text-xs ${
+                          ok
+                            ? "text-emerald-500"
+                            : fora
+                            ? "text-red-500"
+                            : "text-neutral-600"
+                        }`}
+                      >
+                        {ok ? "✓" : i + 1}
+                      </span>
+                      <span
+                        className={`w-16 shrink-0 text-xl font-semibold ${
+                          ok
+                            ? "text-neutral-600 line-through"
+                            : fora
+                            ? "text-red-400"
+                            : eAtual
+                            ? "text-(--destaque-claro)"
+                            : "text-neutral-200"
+                        }`}
+                      >
+                        {pad(end)}
+                      </span>
+                      {mostraDip && (
+                        <Dip
+                          valor={end}
+                          somaMaisUm={somaMaisUm}
+                          apagado={ok || fora}
+                        />
+                      )}
+                      <span
+                        className={`ml-auto text-xs ${
+                          fora ? "text-red-500" : "text-neutral-600"
+                        }`}
+                      >
+                        {pad(end)}–{pad(end + g.canais - 1)}
+                      </span>
+                    </button>
+                    {/* tirar este aparelho do grupo (não coube, quebrou...) */}
+                    <button
+                      onClick={() =>
+                        confirmaAp === i
+                          ? (onRemoveAparelho(i), setConfirmaAp(null))
+                          : setConfirmaAp(i)
+                      }
+                      onBlur={() => setConfirmaAp(null)}
+                      className={`shrink-0 px-3.5 text-xs ${
+                        confirmaAp === i
+                          ? "bg-red-950 font-semibold text-red-300"
+                          : "text-neutral-700 active:text-red-400"
                       }`}
                     >
-                      {ok ? "✓" : i + 1}
-                    </span>
-                    <span
-                      className={`w-16 text-xl font-semibold ${
-                        ok
-                          ? "text-neutral-600 line-through"
-                          : fora
-                          ? "text-red-400"
-                          : eAtual
-                          ? "text-(--destaque-claro)"
-                          : "text-neutral-200"
-                      }`}
-                    >
-                      {pad(end)}
-                    </span>
-                    <Dip
-                      valor={end}
-                      somaMaisUm={somaMaisUm}
-                      apagado={ok || fora}
-                    />
-                    <span
-                      className={`ml-auto text-xs ${
-                        fora ? "text-red-500" : "text-neutral-600"
-                      }`}
-                    >
-                      {pad(end)}–{pad(end + g.canais - 1)}
-                    </span>
-                  </button>
+                      {confirmaAp === i ? "tirar?" : "✕"}
+                    </button>
+                  </div>
                 </li>
               );
             })}

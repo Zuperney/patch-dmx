@@ -7,10 +7,10 @@ export default function Config({
   wake,
   somaMaisUm,
   onSomaMaisUm,
+  mostraDip,
+  onMostraDip,
   destaque,
   onDestaque,
-  rotuloUniverso,
-  onApagarUniverso,
   meus,
   onEditarMeu,
   onRemoverMeu,
@@ -18,8 +18,6 @@ export default function Config({
   onRestaurar,
   onFechar,
 }) {
-  const [confirmaUni, setConfirmaUni] = useState(false);
-
   return (
     <div className="fixed inset-0 z-30 flex items-end justify-center bg-black/70 backdrop-blur-sm sm:items-center">
       <div className="flex max-h-[92dvh] w-full flex-col rounded-t-2xl border-t border-neutral-800 bg-neutral-950 sm:max-w-md sm:rounded-2xl sm:border">
@@ -82,21 +80,39 @@ export default function Config({
 
           {/* dip switch */}
           <p className="mb-2 text-xs font-medium uppercase tracking-wider text-neutral-600">
-            Convenção do dip switch
+            Dip switch
           </p>
           <button
-            onClick={onSomaMaisUm}
-            className="mb-1 flex w-full items-center justify-between rounded-lg border border-neutral-700 px-3 py-3 text-sm text-neutral-300"
+            onClick={onMostraDip}
+            className={`mb-1.5 flex w-full items-center justify-between rounded-lg border px-3 py-3 text-sm ${
+              mostraDip
+                ? "border-(--destaque) bg-(--destaque-fraco) text-(--destaque-claro)"
+                : "border-neutral-700 text-neutral-300"
+            }`}
           >
-            <span>Endereço = soma das chaves{somaMaisUm ? " + 1" : ""}</span>
-            <span className="text-xs text-(--destaque-claro)">
-              {somaMaisUm ? "soma+1" : "soma"}
-            </span>
+            <span>Mostrar dip switches nos endereços</span>
+            <span className="text-xs">{mostraDip ? "visíveis" : "ocultos"}</span>
           </button>
-          <p className="mb-4 text-xs text-neutral-600">
-            A maioria dos fabricantes usa a soma direta. Alguns somam 1. Se o
-            aparelho responder no endereço errado por 1, troque aqui.
-          </p>
+          {mostraDip && (
+            <>
+              <button
+                onClick={onSomaMaisUm}
+                className="mb-1 flex w-full items-center justify-between rounded-lg border border-neutral-800 px-3 py-3 text-sm text-neutral-400"
+              >
+                <span>
+                  Convenção: soma das chaves{somaMaisUm ? " + 1" : ""}
+                </span>
+                <span className="text-xs text-(--destaque-claro)">
+                  {somaMaisUm ? "soma+1" : "soma"}
+                </span>
+              </button>
+              <p className="mb-4 text-xs text-neutral-600">
+                A maioria dos fabricantes usa a soma direta. Alguns somam 1. Se
+                o aparelho responder no endereço errado por 1, troque aqui.
+              </p>
+            </>
+          )}
+          {!mostraDip && <div className="mb-4" />}
 
           {/* biblioteca do usuário */}
           <p className="mb-2 text-xs font-medium uppercase tracking-wider text-neutral-600">
@@ -129,28 +145,6 @@ export default function Config({
             </button>
           )}
           {ocultos === 0 && <div className="mb-2" />}
-
-          {/* universo */}
-          <p className="mb-2 text-xs font-medium uppercase tracking-wider text-neutral-600">
-            Universo
-          </p>
-          <button
-            onClick={() =>
-              confirmaUni
-                ? (onApagarUniverso(), setConfirmaUni(false))
-                : setConfirmaUni(true)
-            }
-            onBlur={() => setConfirmaUni(false)}
-            className={`w-full rounded-lg border px-3 py-3 text-sm ${
-              confirmaUni
-                ? "border-red-600 bg-red-950 text-red-300"
-                : "border-neutral-800 text-neutral-400"
-            }`}
-          >
-            {confirmaUni
-              ? `Apagar ${rotuloUniverso} de verdade?`
-              : `Apagar ${rotuloUniverso} (universo atual)`}
-          </button>
 
           <p className="mt-5 text-center text-xs text-neutral-700">
             Patch DMX v{__APP_VERSAO__}
