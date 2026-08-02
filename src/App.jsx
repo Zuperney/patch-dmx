@@ -17,6 +17,7 @@ import {
   IconeSol,
   IconeEngrenagem,
   IconeMais,
+  IconeDesfazer,
 } from "./components/Icones.jsx";
 import Regua from "./components/Regua.jsx";
 import Grupo from "./components/Grupo.jsx";
@@ -40,6 +41,22 @@ export default function App() {
   const [pronto, setPronto] = useState(false);
   const primeiraVez = useRef(true);
   const wake = useWakeLock();
+
+  /* histórico de ações para o desfazer geral (só em memória) */
+  const historico = useRef([]);
+  const [nHistorico, setNHistorico] = useState(0);
+  const guarda = () => {
+    historico.current.push({ universos, atual });
+    if (historico.current.length > 50) historico.current.shift();
+    setNHistorico(historico.current.length);
+  };
+  const desfazer = () => {
+    const ultimo = historico.current.pop();
+    if (!ultimo) return;
+    setNHistorico(historico.current.length);
+    setUniversos(ultimo.universos);
+    setAtual(ultimo.atual);
+  };
 
   useEffect(() => {
     carregar().then((d) => {
@@ -84,13 +101,16 @@ export default function App() {
       us.map((u, i) => (i === atual ? { ...u, grupos: fn(u.grupos) } : u))
     );
 
-  const addGrupo = (nome, canais, qtd, inicio) =>
+  const addGrupo = (nome, canais, qtd, inicio) => {
+    guarda();
     setGrupos((gs) => [
       ...gs,
       { id: uid(), nome, canais, qtd, inicio, feitos: [] },
     ]);
+  };
 
   const removeGrupo = (id) => {
+    guarda();
     setGrupos((gs) => gs.filter((g) => g.id !== id));
     setAberto(null);
   };
@@ -119,6 +139,7 @@ export default function App() {
   /* tira um aparelho físico do grupo. Tirar do meio divide o grupo em
      dois, preservando endereços e etiquetas dos que já estão pendurados */
   const removeAparelho = (id, i) => {
+    guarda();
     setGrupos((gs) =>
       gs.flatMap((g) => {
         if (g.id !== id) return [g];
@@ -168,6 +189,7 @@ export default function App() {
 
   /* corta cada grupo no que cabe; some quem nem começa dentro do universo */
   const apagaEstouros = () => {
+    guarda();
     setGrupos((gs) =>
       gs.flatMap((g) => {
         if (fim(g) <= CANAIS_UNIVERSO) return [g];
@@ -186,8 +208,9 @@ export default function App() {
     else setOcultos((o) => (o.includes(nome) ? o : [...o, nome]));
   };
 
-  const alterna = (id, i) =>
-    setGrupos((gs) =>
+  const alterna = (id, i) => {
+    guarda();
+    return setGrupos((gs) =>
       gs.map((g) => {
         if (g.id !== id) return g;
         const f = new Set(g.feitos);
@@ -195,30 +218,25 @@ export default function App() {
         return { ...g, feitos: [...f] };
       })
     );
+  };
 
   /* mais um aparelho igual no fim do grupo */
-  const addAparelho = (id) =>
+  const addAparelho = (id) => {
+    guarda();
     setGrupos((gs) =>
       gs.map((g) => (g.id === id ? { ...g, qtd: g.qtd + 1 } : g))
     );
-
-  const desfaz = (id) =>
-    setGrupos((gs) =>
-      gs.map((g) => {
-        if (g.id !== id) return g;
-        const f = [...g.feitos].sort((a, b) => a - b);
-        f.pop();
-        return { ...g, feitos: f };
-      })
-    );
+  };
 
   const novoUniverso = () => {
+    guarda();
     setUniversos((us) => [...us, { id: uid(), grupos: [] }]);
     setAtual(universos.length);
     setAberto(null);
   };
 
   const apagaUniverso = () => {
+    guarda();
     setUniversos((us) => {
       if (us.length === 1) return [{ id: uid(), grupos: [] }];
       return us.filter((_, i) => i !== atual);
@@ -256,6 +274,16 @@ export default function App() {
               Patch DMX
             </h1>
             <div className="flex gap-1.5">
+              {nHistorico > 0 && (
+                <button
+                  onClick={desfazer}
+                  aria-label="Desfazer última ação"
+                  title="Desfazer última ação"
+                  className="flex h-10 w-10 items-center justify-center rounded-lg border border-neutral-700 text-neutral-400 transition-transform duration-200 active:scale-90 active:text-neutral-200"
+                >
+                  <IconeDesfazer />
+                </button>
+              )}
               {wake.suportado && (
                 <button
                   onClick={wake.alternar}
@@ -374,7 +402,8 @@ export default function App() {
               onAbrir={() => setAberto(aberto === g.id ? null : g.id)}
               onAlterna={(i) => alterna(g.id, i)}
               onAddAparelho={() => addAparelho(g.id)}
-              onDesfaz={() => desfaz(g.id)}
+              onDesfaz={desfazer}
+              podeDesfazer={nHistorico > 0}
               onRemove={() => removeGrupo(g.id)}
               onRemoveAparelho={(i) => removeAparelho(g.id, i)}
               onEtiqueta={(i, v) => setEtiqueta(g.id, i, v)}

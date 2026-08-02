@@ -11,6 +11,7 @@ export default function Grupo({
   onAlterna,
   onAddAparelho,
   onDesfaz,
+  podeDesfazer,
   onRemove,
   onRemoveAparelho,
   onEtiqueta,
@@ -268,7 +269,8 @@ export default function Grupo({
                 </button>
                 <button
                   onClick={onDesfaz}
-                  className="rounded-lg border border-neutral-700 px-4 text-sm text-neutral-400"
+                  disabled={!podeDesfazer}
+                  className="rounded-lg border border-neutral-700 px-4 text-sm text-neutral-400 disabled:border-neutral-800 disabled:text-neutral-700"
                 >
                   Desfazer
                 </button>
