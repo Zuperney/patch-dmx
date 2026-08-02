@@ -9,7 +9,7 @@ export default function Grupo({
   aberto,
   onAbrir,
   onAlterna,
-  onAvanca,
+  onAddAparelho,
   onDesfaz,
   onRemove,
   onRemoveAparelho,
@@ -261,13 +261,10 @@ export default function Grupo({
             ) : (
               <>
                 <button
-                  onClick={onAvanca}
-                  disabled={completo}
-                  className="botao-neon flex-1 rounded-lg bg-(--destaque) py-3.5 text-sm font-bold text-neutral-950 transition-transform active:scale-[0.97] active:bg-(--destaque-ativo) disabled:bg-neutral-800 disabled:text-neutral-600 disabled:shadow-none"
+                  onClick={onAddAparelho}
+                  className="botao-neon flex-1 rounded-lg bg-(--destaque) py-3.5 text-sm font-bold text-neutral-950 transition-transform active:scale-[0.97] active:bg-(--destaque-ativo)"
                 >
-                  {completo
-                    ? "Tudo endereçado"
-                    : `Endereçar ${pad(lista[atual])} →`}
+                  + Adicionar aparelho
                 </button>
                 <button
                   onClick={onDesfaz}

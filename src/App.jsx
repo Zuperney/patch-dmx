@@ -196,19 +196,10 @@ export default function App() {
       })
     );
 
-  const avanca = (id) =>
+  /* mais um aparelho igual no fim do grupo */
+  const addAparelho = (id) =>
     setGrupos((gs) =>
-      gs.map((g) => {
-        if (g.id !== id) return g;
-        const f = new Set(g.feitos);
-        for (let i = 0; i < g.qtd; i++) {
-          if (!f.has(i)) {
-            f.add(i);
-            break;
-          }
-        }
-        return { ...g, feitos: [...f] };
-      })
+      gs.map((g) => (g.id === id ? { ...g, qtd: g.qtd + 1 } : g))
     );
 
   const desfaz = (id) =>
@@ -382,7 +373,7 @@ export default function App() {
               aberto={aberto === g.id}
               onAbrir={() => setAberto(aberto === g.id ? null : g.id)}
               onAlterna={(i) => alterna(g.id, i)}
-              onAvanca={() => avanca(g.id)}
+              onAddAparelho={() => addAparelho(g.id)}
               onDesfaz={() => desfaz(g.id)}
               onRemove={() => removeGrupo(g.id)}
               onRemoveAparelho={(i) => removeAparelho(g.id, i)}

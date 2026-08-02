@@ -153,8 +153,10 @@ quantidade, canais, faixa ocupada, contador `8/12`. Aberta mostra os endereços.
 
 **A seta marca, não só avança.** A primeira versão pensada era um cursor que
 anda. Foi trocada porque em campo você **endereça fora de ordem** — pendura o que
-está mais perto primeiro. Então cada endereço é um item marcável individualmente,
-e o botão grande só marca o próximo não-marcado como atalho.
+está mais perto primeiro. Então cada endereço é um item marcável individualmente.
+O botão grande de "endereçar o próximo" existiu até a v0.6.0 e foi removido a
+pedido do usuário por ser redundante com o toque na linha; no lugar dele ficou
+"+ Adicionar aparelho", que acrescenta mais um aparelho igual no fim do grupo.
 
 **O offset do segundo equipamento é sugerido.** O usuário nunca deve precisar
 calcular 12 × 16 + 1 de cabeça. O campo "Começa em" já vem preenchido com o
